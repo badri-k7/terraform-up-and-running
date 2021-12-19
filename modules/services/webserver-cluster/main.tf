@@ -143,3 +143,11 @@ output "elb_dns_name" {
 output "webserver_asg_name" {
   value = aws_autoscaling_group.webServerAsg.name
 }
+
+output "elb_security_group_id" {
+  value = aws_security_group.webServerElb.id
+}
+
+output "webserver_security_group_id" {
+  value = aws_security_group.instance.id
+}
