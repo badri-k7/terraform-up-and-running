@@ -20,3 +20,30 @@ variable "cluster_port_numbers" {
     port65535 = "65535"
   }
 }
+
+variable "ami_id" {
+  description = "AMI ID for the webserver cluster"
+  default     = "ami-0bd2230cfb28832f7"
+}
+
+variable "server_text" {
+  description = "The text the webserver should return"
+  default     = "Hello world from module variable"
+}
+
+variable "instance_type" {
+  description = "EC2 instance family type"
+  default     = "t2.micro"
+}
+
+variable "min_size" {
+  type        = number
+  description = "Indicate the minimum EC2 instance needed for Autoscaling group"
+  default     = 2
+}
+
+variable "max_size" {
+  type        = number
+  description = "Indicate the maximum EC2 instance needed for Autoscaling group"
+  default     = 2
+}

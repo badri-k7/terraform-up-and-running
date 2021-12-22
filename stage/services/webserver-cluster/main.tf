@@ -15,7 +15,13 @@ module "webserver_cluster" {
   source                 = "../../../modules/services/webserver-cluster"
   db_remote_state_bucket = "badri-terraform-remote-state"
   db_remote_state_key    = "stage/data-store/mysql/terraform.tfstate"
-  cluster_name           = "staging_web_cluser"
+  cluster_name           = "staging_web_cluster"
+  ami_id                 = "ami-0bd2230cfb28832f7"
+  server_text            = "This is a server text from Staging cluster defenition"
+
+  instance_type = "t2.micro"
+  min_size      = 2
+  max_size      = 2
 
 }
 

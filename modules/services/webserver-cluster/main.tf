@@ -24,14 +24,15 @@ data "template_file" "user_data" {
   template = file("user-data.sh")
 
   vars = {
-    db_address = data.terraform_remote_state.db.outputs.address
-    db_port    = data.terraform_remote_state.db.outputs.port
+    db_address  = data.terraform_remote_state.db.outputs.address
+    db_port     = data.terraform_remote_state.db.outputs.port
+    server_text = "${var.server_text}"
   }
 }
 
 resource "aws_launch_configuration" "webServerLaunchConfig" {
-  image_id        = "ami-0bd2230cfb28832f7"
-  instance_type   = "t2.micro"
+  image_id        = var.ami_id
+  instance_type   = var.instance_type
   security_groups = ["${aws_security_group.instance.id}"]
   key_name        = aws_key_pair.badris-mbp.key_name
   user_data       = data.template_file.user_data.rendered
@@ -41,17 +42,20 @@ resource "aws_launch_configuration" "webServerLaunchConfig" {
 }
 
 resource "aws_autoscaling_group" "webServerAsg" {
+  name = "${var.cluster_name}-${aws_launch_configuration.webServerLaunchConfig.name}"
+
   launch_configuration = aws_launch_configuration.webServerLaunchConfig.id
   availability_zones   = data.aws_availability_zones.all.names
 
   load_balancers    = ["${aws_elb.webServerElb.name}"]
   health_check_type = "ELB"
 
-  min_size = 2
-  max_size = 5
+  min_size = var.min_size
+  max_size = var.max_size
+
   tag {
     key                 = "name"
-    value               = "webServerAsg"
+    value               = var.cluster_name
     propagate_at_launch = true
   }
 
