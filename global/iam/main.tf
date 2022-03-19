@@ -4,18 +4,18 @@ provider "aws" {
 
 variable "user_names" {
   type    = list(string)
-  default = ["pappu", "neya", "poppy"]
+  default = ["pappu", "poppy"]
 
 }
 
 resource "aws_iam_user" "iam_user" {
-  count = length(var.user_names)
-  name  = element(var.user_names, count.index)
+  for_each=toset(var.user_names)
+  name  = each.value
 }
 
 resource "aws_iam_user_policy_attachment" "iam_user_ec2_readonly" {
   count      = length(var.user_names)
-  user       = element(var.user_names, count.index)
+  user       = var.user_names[count.index]
   policy_arn = aws_iam_policy.ec2_readonly.arn
 }
 
@@ -25,7 +25,7 @@ data "aws_iam_policy_document" "ec2_readonly" {
     effect    = "Allow"
     actions   = ["ec2:Describe*"]
     resources = ["*"]
-    sid       = "ec2_read_only"
+    sid       = "Ec2ReadOnly"
   }
 }
 
@@ -34,6 +34,6 @@ resource "aws_iam_policy" "ec2_readonly" {
   policy = data.aws_iam_policy_document.ec2_readonly.json
 }
 
-output "iam_list_users_arn" {
-  value = [aws_iam_user.iam_user.*.arn]
+output "all_iam_users" {
+  value = values(aws_iam_user.iam_user)[*].arn
 }

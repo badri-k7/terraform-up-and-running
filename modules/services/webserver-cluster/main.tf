@@ -3,6 +3,15 @@ data "aws_availability_zones" "all" {
   state                  = "available"
 }
 
+locals {
+  http_port = 80
+  ssh_port = 22
+  any_port = 0
+  any_protocol = "-1"
+  tcp_protocol = "tcp"
+  all_ips = ["0.0.0.0/0"]
+}
+
 data "terraform_remote_state" "db" {
 
   backend = "s3"
@@ -21,7 +30,7 @@ data "terraform_remote_state" "db" {
 
 data "template_file" "user_data" {
 
-  template = file("user-data.sh")
+  template = file("${path.module}/user-data.sh")
 
   vars = {
     db_address  = data.terraform_remote_state.db.outputs.address
@@ -89,17 +98,17 @@ resource "aws_security_group" "webServerElb" {
   name = "sg_${var.cluster_name}-elb"
 
   ingress {
-    from_port   = var.cluster_port_numbers.port80
-    to_port     = var.cluster_port_numbers.port80
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    from_port   = local.http_port
+    to_port     = local.http_port
+    protocol    = local.tcp_protocol
+    cidr_blocks = local.all_ips
   }
 
   egress {
-    from_port   = var.cluster_port_numbers.port0
-    to_port     = var.cluster_port_numbers.port65535
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    from_port   = local.any_port
+    to_port     = local.any_port
+    protocol    = local.tcp_protocol
+    cidr_blocks = local.all_ips
   }
   lifecycle {
     create_before_destroy = true
@@ -110,22 +119,22 @@ resource "aws_security_group" "instance" {
 
   name = "sg_${var.cluster_name}-instance"
   ingress {
-    from_port   = var.cluster_port_numbers.port80
-    to_port     = var.cluster_port_numbers.port80
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    from_port   = local.http_port
+    to_port     = local.http_port
+    protocol    = local.tcp_protocol
+    cidr_blocks = local.all_ips
   }
   ingress {
-    from_port   = var.cluster_port_numbers.port22
-    to_port     = var.cluster_port_numbers.port22
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    from_port   = local.ssh_port
+    to_port     = local.ssh_port
+    protocol    = local.tcp_protocol
+    cidr_blocks = local.all_ips
   }
   egress {
-    from_port   = var.cluster_port_numbers.port0
-    to_port     = var.cluster_port_numbers.port65535
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    from_port   = local.any_port
+    to_port     = local.any_port
+    protocol    = local.tcp_protocol
+    cidr_blocks = local.all_ips
   }
   lifecycle {
     create_before_destroy = true
